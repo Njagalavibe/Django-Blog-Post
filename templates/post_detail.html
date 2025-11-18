@@ -26,7 +26,7 @@
     <button id="comment-toggle-btn" type="button">Add Comment</button>
     
     <div id="comment-form-container" style="display: none; margin-top: 10px;">
-        <form method="POST" action="{% url 'add_comment' post.pk %}">
+        <form method="POST" action="">
             {% csrf_token %}
             <div>
                 <textarea name="content" rows="4" cols="50" placeholder="Write your comment here..."></textarea>
@@ -39,11 +39,17 @@
 
 <!-- DISPLAY EXISTING COMMENTS -->
 <div style="margin-top: 20px;">
-    <h3>Comments ({{ post.comments.count }})</h3>
-    {% for comment in post.comments.all %}
+    <h3>Comments ({{ comments.count }})</h3>
+    {% for comment in comments %}
     <div style="border: 1px solid #ccc; padding: 10px; margin: 10px 0;">
-        <p><strong>{{ comment.author }}</strong> - {{ comment.created_date }}</p>
-        <p>{{ comment.body }}</p>
+        <p><strong>
+            {% if comment.user %}
+                {{ comment.user.username }}
+            {% else %}
+                {{ comment.guest_name|default:"Anonymous" }}
+            {% endif %}
+        </strong> - {{ comment.created_date }}</p>
+        <p>{{ comment.content }}</p>
     </div>
     {% empty %}
     <p>No comments yet.</p>
@@ -58,7 +64,7 @@
 
 <!-- BACK TO LIST -->
 <div style="margin-top: 20px;">
-    <a href="{% url 'post_list' %}">← Back to all posts</a>
+    <button href="{% url 'home' %}">← Back</button>
 </div>
 
 <!-- JAVASCRIPT -->
@@ -81,10 +87,11 @@ document.addEventListener('DOMContentLoaded', function() {
     });
 
     // If the form was submitted with errors, keep it visible
-    {% if form.errors %}
+    {% if comment_form.errors %}
     commentFormContainer.style.display = 'block';
     commentToggleBtn.style.display = 'none';
     {% endif %}
 });
 </script>
 {% endblock %}
+

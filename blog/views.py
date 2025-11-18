@@ -110,3 +110,26 @@ def dislike_post(request, pk):
         Like.objects.create(post=post, session_key=session_key, reaction_type='dislike')
     
     return redirect(request.META.get('HTTP_REFERER', 'home'))
+
+
+from django.shortcuts import render, get_object_or_404, redirect
+from django.contrib import messages
+from .models import Post, Comment
+
+def add_comment(request, post_id):
+    post = get_object_or_404(Post, id=post_id)
+    
+    if request.method == 'POST':
+        content = request.POST.get('content', '').strip()
+        
+        if content:
+            Comment.objects.create(
+                post=post,
+                author=request.user if request.user.is_authenticated else None,
+                content=content
+            )
+            messages.success(request, 'Comment added successfully!')
+        else:
+            messages.error(request, 'Comment cannot be empty!')
+    
+    return redirect('post_detail', pk=post_id)
