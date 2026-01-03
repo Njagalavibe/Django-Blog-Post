@@ -1,6 +1,6 @@
-from django.views.generic import ListView, DetailView
+from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.shortcuts import render, get_object_or_404, redirect
-from django.views.generic.edit import CreateView, UpdateView, DeleteView   
+
 from django.urls import reverse_lazy 
 from .models import Post, Like, Comment
 from .forms import CommentForm
@@ -10,7 +10,6 @@ class BlogPostsView(ListView):
     model = Post        
     template_name = 'home.html'
 
-# Use the function-based post_detail (it has more features)
 def post_detail(request, pk):
     post = get_object_or_404(Post, pk=pk)
     
@@ -22,18 +21,25 @@ def post_detail(request, pk):
     # Check if user has already reacted
     user_reaction = post.get_user_reaction(session_key)
     
-    # Handle comment submission
+    # Handle POST requests
     if request.method == 'POST':
-        form = CommentForm(request.POST)
-        if form.is_valid():
-            comment = form.save(commit=False)
-            comment.post = post
-            if request.user.is_authenticated:
-                comment.user = request.user
-            else:
-                comment.guest_name = "Anonymous"
-            comment.save()
-            return redirect('post_detail', pk=post.pk)
+        # Check if it's a like/dislike action
+        if 'like' in request.POST:
+            return like_post(request, pk)
+        elif 'dislike' in request.POST:
+            return dislike_post(request, pk)
+        else:
+            # Handle comment submission
+            form = CommentForm(request.POST)
+            if form.is_valid():
+                comment = form.save(commit=False)
+                comment.post = post
+                if request.user.is_authenticated:
+                    comment.user = request.user
+                else:
+                    comment.guest_name = "Anonymous"
+                comment.save()
+                return redirect('post_detail', pk=post.pk)
     else:
         form = CommentForm()
     
@@ -110,26 +116,3 @@ def dislike_post(request, pk):
         Like.objects.create(post=post, session_key=session_key, reaction_type='dislike')
     
     return redirect(request.META.get('HTTP_REFERER', 'home'))
-
-
-from django.shortcuts import render, get_object_or_404, redirect
-from django.contrib import messages
-from .models import Post, Comment
-
-def add_comment(request, post_id):
-    post = get_object_or_404(Post, id=post_id)
-    
-    if request.method == 'POST':
-        content = request.POST.get('content', '').strip()
-        
-        if content:
-            Comment.objects.create(
-                post=post,
-                author=request.user if request.user.is_authenticated else None,
-                content=content
-            )
-            messages.success(request, 'Comment added successfully!')
-        else:
-            messages.error(request, 'Comment cannot be empty!')
-    
-    return redirect('post_detail', pk=post_id)

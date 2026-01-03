@@ -4,16 +4,24 @@ from django.urls import reverse
 
 # Post model
 class Post(models.Model):
+    STATUS_CHOICES = [
+        ('draft', 'Draft'),
+        ('published', 'Published'),
+    ]
+    
     title = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=200, unique=True)
     author = models.ForeignKey('auth.User', on_delete=models.CASCADE, default=1)
     body = models.TextField()
-    published_date = models.DateTimeField(auto_now_add=True)
+    excerpt = models.TextField(blank=True)
+    status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='draft')
+    published_date = models.DateTimeField(null=True, blank=True)
 
     def __str__(self):
         return self.title
     
     def get_absolute_url(self):
-        return reverse('post_detail', args=[str(self.id)])
+        return reverse('post_detail', kwargs={'slug': self.slug})
     
     # Like/Dislike methods
     def get_like_count(self):
@@ -24,26 +32,24 @@ class Post(models.Model):
         """Returns total number of dislikes for this post"""
         return self.likes.filter(reaction_type='dislike').count()
     
-    def get_user_reaction(self, session_key):
-        """Check if current session user has reacted to this post"""
+    def get_user_reaction(self, user):
+        """Check if user has reacted to this post"""
+        if not user or not user.is_authenticated:
+            return None
         try:
-            like = self.likes.get(session_key=session_key)
+            like = self.likes.get(user=user)
             return like.reaction_type
         except Like.DoesNotExist:
             return None
-    
-    def has_user_reacted(self, session_key):
+    def has_user_reacted(self, user):
         """Check if user has already reacted"""
-        return self.get_user_reaction(session_key) is not None
+        return self.get_user_reaction(user) is not None
     
     # Comment methods
     def get_comment_count(self):
         """Returns total number of comments"""
         return self.comments.count()
     
-    def get_verified_comment_count(self):
-        """Returns number of verified comments"""
-        return self.comments.filter(is_verified=True).count()
     
     def get_recent_comments(self, limit=5):
         """Get most recent comments"""
@@ -69,25 +75,16 @@ class Comment(models.Model):
     content = models.TextField()
     created_date = models.DateTimeField(auto_now_add=True)
 
-    # For authenticated user
-    user = models.ForeignKey('auth.User', on_delete=models.CASCADE, null=True, blank=True)
-    is_verified = models.BooleanField(default=False)
-
-    # For anonymous user
-    guest_name = models.CharField(max_length=100, blank=True, null=True)    
-    guest_email = models.EmailField(blank=True, null=True)
+    # Verification field
+    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
 
     def get_absolute_url(self):
-        return reverse('post_detail', kwargs={'pk': self.post.pk})
+        return reverse('post_detail', kwargs={'slug': self.post.slug})
 
     
     def __str__(self):
-        if self.guest_name:
-            return f"Comment by {self.guest_name} on {self.post.title}"
-        elif self.user:
-            return f"Comment by {self.user.username} on {self.post.title}"
-        else:
-            return f"Comment by Anonymous on {self.post.title}"
+        return f"Comment by {self.user.username} on {self.post.title}"
+       
 
 # Like model
 class Like(models.Model):
@@ -96,12 +93,31 @@ class Like(models.Model):
         ('dislike', 'Dislike'),
     ]
     post = models.ForeignKey(Post, related_name='likes', on_delete=models.CASCADE)
-    session_key = models.CharField(max_length=100)  # To track anonymous users
+    user = models.ForeignKey('auth.User', on_delete=models.CASCADE)
     reaction_type = models.CharField(max_length=7, choices=REACTION_CHOICES)
-    created_at = models.DateTimeField(auto_now_add=True)  # Added missing field
+    created_at = models.DateTimeField(auto_now_add=True)
 
     class Meta:
-        unique_together = ['post', 'session_key']  # Ensure one reaction per session
+        unique_together = ['post', 'user']  # Ensure one reaction per user per post
 
     def __str__(self):
-        return f"{self.reaction_type} on {self.post.title} by {self.session_key}"
+        return f"{self.reaction_type} on {self.post.title} by {self.user.username}"
+    
+# Project model
+class Project(models.Model):
+    title = models.CharField(max_length=200)
+    slug = models.SlugField(max_length=200, unique=True)
+    description = models.TextField()
+    image = models.ImageField(upload_to='projects/', blank=True, null=True)
+    github_url = models.URLField(blank=True)
+    live_url = models.URLField(blank=True)
+    technologies = models.CharField(max_length=300)
+    featured = models.BooleanField(default=False)
+    created_date = models.DateTimeField(auto_now_add=True)
+    updated_date = models.DateTimeField(auto_now=True)
+    
+    def __str__(self):
+        return self.title
+    
+    def get_absolute_url(self):
+        return reverse('project_detail', kwargs={'slug': self.slug})

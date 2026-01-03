@@ -12,12 +12,12 @@
 <div>
     <form method="POST" action="{% url 'like_post' post.pk %}" style="display: inline;">
         {% csrf_token %}
-        <button type="submit" name="like">👍({{ post.likes.count }})</button>
+        <button type="submit" name="like">👍({{ post.like_count }})</button>
     </form>
     
     <form method="POST" action="{% url 'dislike_post' post.pk %}" style="display: inline;">
         {% csrf_token %}
-        <button type="submit" name="dislike">👎({{ post.dislikes.count }})</button>
+        <button type="submit" name="dislike">👎 ({{ post.dislike_count }})</button>
     </form>
 </div>
 

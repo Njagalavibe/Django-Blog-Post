@@ -13,13 +13,13 @@
                 <!-- Like Button -->
                 <form method="POST" action="{% url 'like_post' post.pk %}" style="display: inline;">
                     {% csrf_token %}
-                    <button type="submit">👍 {{ post.like_count }}</button>
+                    <button type="submit">👍{{ post.like_count }}</button>
                 </form>
                 
                 <!-- Dislike Button -->
                 <form method="POST" action="{% url 'dislike_post' post.pk %}" style="display: inline;">
                     {% csrf_token %}
-                    <button type="submit">👎 {{ post.dislike_count }}</button>
+                    <button type="submit">👎{{ post.dislike_count }}</button>
                 </form>
                 
                 <!-- Comment Count -->
