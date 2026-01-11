@@ -1,18 +1,26 @@
 <!DOCTYPE html>
-<html>
+{% load static %}
+<html lang="en">
 <head>
-    <title>{% block title %}Portfolio{% endblock %}</title>
-</head>
-<body>
-    <nav>
-        <a href="/">Home</a> |
-        <a href="/blog/">Blog</a> |
-        <a href="/projects/">Projects</a> |
-        <a href="/about/">About</a>
-    </nav>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% block title %}My Portfolio{% endblock %}</title>
     
-    <main>
-        {% block content %}{% endblock %}
+    <!-- Base CSS for all pages -->
+    <link rel="stylesheet" href="{% static 'base.css' %}">
+    
+    {% block extra_css %}{% endblock %}
+</head>
+<body style="background-color: #F5E9A6;">
+    
+    <!-- NO NAVIGATION for home page -->
+    
+    <main class="content-area">
+        {% block content %}
+        <!-- Page content will go here -->
+        {% endblock %}
     </main>
+    
+    {% block extra_js %}{% endblock %}
 </body>
 </html>

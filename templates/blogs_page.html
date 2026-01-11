@@ -1,8 +1,91 @@
-<!DOCTYPE html>
-<html>
-<head><title>Blog</title></head>
-<body>
-    <h1>Blog Posts</h1>
-    <p>List of posts will go here</p>
-</body>
-</html>
+{% extends 'base_with_nav.html' %}
+{% load static %}
+
+{% block title %}Blog - {{ page_title }}{% endblock %}
+
+{% block extra_css %}
+{{ block.super }}  <!-- This includes base.css and base_with_nav.css from parent -->
+<!-- Link to blog-specific CSS -->
+<link rel="stylesheet" href="{% static 'blogs_page.css' %}">
+{% endblock %}
+
+{% block page_content %} <!-- Content inside the reserved space for pages with navigation -->
+
+<div class="blog-container">
+    
+    <!-- Blog Grid -->
+    <div class="blog-grid">
+        {% for post in posts %}
+        <article class="blog-card">
+            
+            <!-- Featured Image -->
+            {% if post.featured_image %}
+            <div class="card-image">
+                <img src="{{ post.featured_image.url }}" alt="{{ post.title }}" loading="lazy">
+            </div>
+            {% endif %}
+            
+            <!-- Card Content -->
+            <div class="card-content">
+                <div class="post-meta">
+                    {% if post.category %}
+                    <span class="post-category">{{ post.category.name }}</span>
+                    {% endif %}
+                    <span class="post-date">{{ post.published_date|date:"F j, Y" }}</span>
+                </div>
+                
+                <h2 class="card-title">
+                    <a href="{% url 'blog_detail' post.slug %}">{{ post.title }}</a>
+                </h2>
+                
+                <p class="card-excerpt">
+                    {{ post.excerpt|truncatewords:30 }}
+                </p>
+                
+                <a href="{% url 'blog_detail' post.slug %}" class="read-more">
+                    Read Full Article →
+                </a>
+            </div>
+           <!-- In templates/blogs_page.html, update the interactions section: -->
+            <div class="card-interactions">
+                <div class="interaction-item">
+                    <span class="interaction-icon">👍</span>
+                    <span class="interaction-count">{{ post.like_count }}</span>
+                </div>
+                <div class="interaction-item">
+                    <span class="interaction-icon">👎</span>
+                    <span class="interaction-count">{{ post.dislike_count }}</span>
+                </div>
+                <div class="interaction-item">
+                    <span class="interaction-icon">💬</span>
+                    <span class="interaction-count">{{ post.comment_count }}</span>
+                </div>
+            </div>
+                        
+        </article>
+        {% empty %}
+        <!-- Show this if there are no posts -->
+        <div class="no-posts">
+            <h3>No blog posts yet.</h3>
+            <p>Check back soon for updates!</p>
+        </div>
+        {% endfor %}
+    </div>
+    
+    <!-- Pagination -->
+    {% if posts.has_other_pages %}
+    <div class="pagination">
+        {% if posts.has_previous %}
+        <a href="?page={{ posts.previous_page_number }}" class="page-link">← Previous</a>
+        {% endif %}
+        
+        <span class="current-page">Page {{ posts.number }} of {{ posts.paginator.num_pages }}</span>
+        
+        {% if posts.has_next %}
+        <a href="?page={{ posts.next_page_number }}" class="page-link">Next →</a>
+        {% endif %}
+    </div>
+    {% endif %}
+    
+</div>
+{% endblock %}

@@ -1,0 +1,24 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block extra_css %}
+{{ block.super }}  <!-- This includes base.css from parent -->
+<!-- Navigation-specific CSS -->
+<link rel="stylesheet" href="{% static 'base_with_nav.css' %}">
+{% endblock %}
+
+{% block content %}
+<!-- Desktop-Only Sticky Navigation -->
+<nav class="sticky-nav">
+    <a href="{% url 'home' %}" class="button-56" role="button">
+        <span class="text">← BACK TO HOME</span>
+    </a>
+</nav>
+
+<!-- Main Content with reserved space -->
+<div class="content-with-nav">
+    {% block page_content %}
+    <!-- Page content will go here -->
+    {% endblock %}
+</div>
+{% endblock %}

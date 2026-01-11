@@ -2,7 +2,7 @@ from django.db import models
 from django.contrib.auth.models import User
 from django.urls import reverse
 
-# Post model
+# In your blog/models.py - Update just the Post model
 class Post(models.Model):
     STATUS_CHOICES = [
         ('draft', 'Draft'),
@@ -16,12 +16,19 @@ class Post(models.Model):
     excerpt = models.TextField(blank=True)
     status = models.CharField(max_length=10, choices=STATUS_CHOICES, default='draft')
     published_date = models.DateTimeField(null=True, blank=True)
-
+    
+    # NEW FIELD - Add this line
+    featured_image = models.ImageField(
+        upload_to='blog_images/',
+        blank=True,
+        null=True,
+        help_text="Upload a featured image for the blog post"
+    )
     def __str__(self):
         return self.title
     
     def get_absolute_url(self):
-        return reverse('post_detail', kwargs={'slug': self.slug})
+        return reverse('blog_detail', kwargs={'slug': self.slug})
     
     # Like/Dislike methods
     def get_like_count(self):
@@ -41,6 +48,7 @@ class Post(models.Model):
             return like.reaction_type
         except Like.DoesNotExist:
             return None
+    
     def has_user_reacted(self, user):
         """Check if user has already reacted"""
         return self.get_user_reaction(user) is not None
@@ -49,7 +57,6 @@ class Post(models.Model):
     def get_comment_count(self):
         """Returns total number of comments"""
         return self.comments.count()
-    
     
     def get_recent_comments(self, limit=5):
         """Get most recent comments"""

@@ -1,0 +1,90 @@
+/* BASE.CSS - Desktop-only sticky nav with your button design */
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: 'Segoe UI', system-ui, sans-serif;
+    /* No top padding needed since nav is desktop-only */
+}
+
+/* Desktop properties */
+@media (min-width: 768px) {
+
+    /* Sticky nav styles */
+    .sticky-nav {
+        position: fixed;
+        top: 20px; /* Give some breathing room from top */
+        left: 20px; /* Position from left corner */
+        z-index: 1000; /* Ensure it's above other content */
+    }
+    /* Desktop button sizing */
+    .button-56 {
+        padding: 0.25em 0.75em;
+    }
+
+    /* Add padding to the content_with_nav  when nav is present */
+    .content_with-nav {
+        padding-top: 100px;    /* Reserve space at top for nav */
+        padding-left: 140px;   /* Reserve space at left for nav */
+    }
+
+}
+    
+ /* Hide on mobile */
+@media (max-width: 767px) {
+        .sticky-nav {
+            display: none;
+        }
+
+        .content_with-nav {
+        padding: 0;  /* Full width on mobile */
+      }
+}
+
+
+/* ===== YOUR BUTTON DESIGN ===== */
+.button-56 {
+    font-family: "Open Sans", sans-serif;
+    font-size: 16px;
+    letter-spacing: 2px;
+    text-decoration: none;
+    text-transform: uppercase;
+    color: #000;
+    cursor: pointer;
+    border: 3px solid;
+    padding: 0.25em 0.5em;
+    box-shadow: 1px 1px 0px 0px, 
+                2px 2px 0px 0px, 
+                3px 3px 0px 0px, 
+                4px 4px 0px 0px, 
+                5px 5px 0px 0px;
+    position: relative;
+    user-select: none;
+    -webkit-user-select: none;
+    touch-action: manipulation;
+    background-color: #F5E9A6; /* Your musty yellow */
+    display: inline-block; /* For proper link styling */
+}
+
+/* Hover effect - optional, you can remove if you prefer only active state */
+.button-56:hover {
+    background-color: #000;
+    color: #F5E9A6;
+}
+
+/* Active state - when button is clicked */
+.button-56:active {
+    box-shadow: 0px 0px 0px 0px;
+    top: 5px;
+    left: 5px;
+}
+
+/* Optional: Make text bold for better readability */
+.button-56 .text {
+    font-weight: 600;
+}
+

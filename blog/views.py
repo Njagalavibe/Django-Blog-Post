@@ -1,6 +1,7 @@
+from urllib import request
 from django.views.generic import ListView, CreateView, UpdateView, DeleteView
 from django.shortcuts import render, get_object_or_404, redirect
-
+from django.core.paginator import Paginator, EmptyPage, PageNotAnInteger
 from django.urls import reverse_lazy 
 from .models import Post, Like, Comment, Project
 from .forms import CommentForm
@@ -17,16 +18,71 @@ def home(request):
 
 # Blogs views
 def blogs_page(request):
-    """Show all published blog posts"""
-    posts = Post.objects.filter(status='published').order_by('-published_date')
-    return render(request, 'blogs_page.html', {'posts': posts})
+    """Show all published blog posts with pagination"""
+    # Get all published posts, ordered by most recent first
+    posts_list = Post.objects.filter(status='published').order_by('-published_date')
+    
+    # Add pagination - 6 posts per page 
+    paginator = Paginator(posts_list, 6)
+    page_number = request.GET.get('page')
+    
+    try:
+        posts = paginator.page(page_number)
+    except PageNotAnInteger:
+        # If page is not an integer, deliver first page
+        posts = paginator.page(1)
+    except EmptyPage:
+        # If page is out of range, deliver last page
+        posts = paginator.page(paginator.num_pages)
+    
+    # Context dictionary with clear variable names
+    context = {
+        'posts': posts,           # Paginated posts
+        'page_title': 'Blog',     # For <title> tag in template
+        'current_page': 'blog',   # For navigation highlighting
+    }
+    
+    return render(request, 'blogs_page.html', context)
 
 # Single blog post view
 def blog_detail(request, slug):
-    """Show single blog post - UPDATED to use slug"""
-    post = get_object_or_404(Post, slug=slug)
-    # TODO: Update session-based logic to user-based
-    return render(request, 'blog_detail.html', {'post': post})
+    """Show single blog post with navigation to next/previous posts"""
+    
+    # Get the current post - CRITICAL: Only published posts!
+    post = get_object_or_404(
+        Post, 
+        slug=slug, 
+        status='published'  # 👈 Security: prevents accessing unpublished posts
+    )
+    
+    # Get next post (older than current)
+    # Using .first() which returns None if no matches, so no try-except needed
+    next_post = Post.objects.filter(
+        status='published',
+        published_date__lt=post.published_date  # Less than current date
+    ).order_by('-published_date').first()  # Get the most recent one before current
+    
+    # Get previous post (newer than current)
+    prev_post = Post.objects.filter(
+        status='published',
+        published_date__gt=post.published_date  # Greater than current date
+    ).order_by('published_date').first()  # Get the oldest one after current
+    
+    # Note: i will implement Google Auth for likes/comments later
+    # For now, i wil just pass the post data to the template
+    # View counting, likes, and comments will be added after portfolio is populated
+    
+    # Context with all needed data for the template
+    context = {
+        'post': post,
+        'next_post': next_post,  #  Next Post navigation
+        'prev_post': prev_post,  # Previous Post navigation
+        'page_title': post.title,  # Dynamic title based on post
+        'current_page': 'blog',    # Keep blog navigation active
+    }
+    
+    return render(request, 'blog_detail.html', context)
+
 
 # Projects views
 def projects_page(request):
